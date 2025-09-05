@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# API Routes - pass action as query parameter
+RewriteRule ^api/chimera/update/?$ api/chimera/index.php?action=update [L,QSA]
+RewriteRule ^api/chimera/stats/?$ api/chimera/index.php?action=stats [L,QSA]
+RewriteRule ^api/chimera/health/?$ api/chimera/index.php?action=health [L,QSA]
+
+# Fallback for direct access with query parameters
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/chimera/(.*)$ api/chimera/index.php [L,QSA]
