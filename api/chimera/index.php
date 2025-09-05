@@ -54,14 +54,32 @@ function getDefaultData() {
         'status' => 'no_data',
         'message' => 'No CHIMERA data available yet.',
         'performance' => [
-            'total_pnl' => 0, 'pnl_percent' => 0, 'win_rate' => 0,
-            'total_trades' => 0, 'balance' => 10000
+            'total_pnl' => 0, 
+            'pnl_percent' => 0, 
+            'win_rate' => 0,
+            'total_trades' => 0, 
+            'balance' => 10000
         ],
-        'regime' => ['current' => 'UNKNOWN', 'confidence' => 0],
-        'market' => ['BTCUSDT' => 0, 'ETHUSDT' => 0, 'SOLUSDT' => 0],
+        'regime' => [
+            'current' => 'UNKNOWN', 
+            'confidence' => 0
+        ],
+        'market' => [
+            'BTCUSDT' => 0, 
+            'ETHUSDT' => 0, 
+            'SOLUSDT' => 0
+        ],
         'system' => [
-            'processing_speed' => 0, 'total_ticks' => 0,
-            'signals_generated' => 0, 'model_accuracy' => 0
+            'processing_speed' => 0, 
+            'total_ticks' => 0,
+            'signals_generated' => 0, 
+            'model_accuracy' => 0
+        ],
+        'data_collection' => [
+            'market_data_points' => 0,
+            'trade_outcomes' => 0,
+            'db_size_mb' => 0,
+            'learning_rate' => 0.001
         ],
         'recent_trades' => []
     ];
