@@ -1,0 +1,19 @@
+# Exclude large data files and models from Heroku deployment
+data/
+models/
+*.csv
+*.pth
+*.db
+*.log
+chimera_output.log
+chimera_trades.db
+identifier.sqlite
+Python-3.11.13/
+build/
+__pycache__/
+.venv/
+.idea/
+.vscode/
+*.pyc
+*.o
+*.gcda
