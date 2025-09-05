@@ -1,0 +1,25 @@
+name: Update CHIMERA Data
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Update data file
+        run: |
+          # Update timestamp in the data file
+          sed -i "s/\"last_updated\": \".*\"/\"last_updated\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\"/" api/chimera/chimera_data.json
+          
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add api/chimera/chimera_data.json
+          git diff --staged --quiet || git commit -m "Auto-update CHIMERA data timestamp"
+          git push
