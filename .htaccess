@@ -1,11 +1,14 @@
 RewriteEngine On
 
-# API Routes - pass action as query parameter
+# Signal endpoint - simple monitoring
+RewriteRule ^api/chimera/signal/?$ api/chimera/signal.php [L,QSA]
+
+# Legacy API routes (if needed)
 RewriteRule ^api/chimera/update/?$ api/chimera/index.php?action=update [L,QSA]
 RewriteRule ^api/chimera/stats/?$ api/chimera/index.php?action=stats [L,QSA]
 RewriteRule ^api/chimera/health/?$ api/chimera/index.php?action=health [L,QSA]
 
-# Fallback for direct access with query parameters
+# Fallback
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^api/chimera/(.*)$ api/chimera/index.php [L,QSA]
+RewriteRule ^api/chimera/(.*)$ api/chimera/signal.php [L,QSA]
