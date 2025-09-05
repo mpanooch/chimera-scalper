@@ -1,0 +1,17 @@
+[ 10%] Building CXX object CMakeFiles/chimera_scalper.dir/src/main.cpp.o
+[ 20%] Building CXX object CMakeFiles/chimera_scalper.dir/src/core/data_feed.cpp.o
+[ 30%] Building CXX object CMakeFiles/chimera_scalper.dir/src/layers/layer1_fastpath.cpp.o
+[ 50%] Building CXX object CMakeFiles/chimera_scalper.dir/src/layers/layer3_experts.cpp.o
+[ 50%] Building CXX object CMakeFiles/chimera_scalper.dir/src/layers/layer2_regime.cpp.o
+[ 70%] Building CXX object CMakeFiles/chimera_scalper.dir/src/layers/layer4_pnlfilter.cpp.o
+[ 70%] Building CXX object CMakeFiles/chimera_scalper.dir/src/layers/layer5_execution.cpp.o
+[ 80%] Building CXX object CMakeFiles/chimera_scalper.dir/src/utils/logger.cpp.o
+[ 90%] Building CUDA object CMakeFiles/chimera_scalper.dir/src/core/features.cu.o
+/home/markp/chimera_scalper/src/layers/layer5_execution.cpp: In member function ‘bool chimera::Layer5Execution::execute_trade(const chimera::ExpertSignal&)’:
+/home/markp/chimera_scalper/src/layers/layer5_execution.cpp:28:24: error: no match for ‘operator+=’ (operand types are ‘std::atomic<float>’ and ‘float’)
+   28 |         position_size_ += position_size;
+      |         ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+make[2]: *** [CMakeFiles/chimera_scalper.dir/build.make:175: CMakeFiles/chimera_scalper.dir/src/layers/layer5_execution.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [CMakeFiles/Makefile2:83: CMakeFiles/chimera_scalper.dir/all] Error 2
+make: *** [Makefile:91: all] Error 2

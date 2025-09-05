@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 CHIMERA Scalper AI Stats - Trading Today</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff41;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00ff41;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #ff4444;
+            text-shadow: 0 0 20px #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+
+        .connected { color: #00ff41; }
+        .disconnected { color: #ff4444; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ff41;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .card h3 {
+            color: #ff4444;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-shadow: 0 0 10px #ff4444;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+        }
+
+        .metric-label {
+            color: #cccccc;
+        }
+
+        .metric-value {
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 15px;
+        }
+
+        .trade-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            border-left: 3px solid #00ff41;
+        }
+
+        .log-buy { border-left-color: #00ff41; background: rgba(0, 255, 65, 0.1); }
+        .log-sell { border-left-color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+        .log-profit { color: #00ff41; }
+        .log-loss { color: #ff4444; }
+
+        .regime-indicator {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .regime-trending { background: rgba(0, 255, 65, 0.2); color: #00ff41; }
+        .regime-mean-reverting { background: rgba(255, 165, 0, 0.2); color: #ffa500; }
+        .regime-volatile { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
+        .regime-unknown { background: rgba(128, 128, 128, 0.2); color: #cccccc; }
+
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .perf-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+
+        .perf-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .positive { color: #00ff41; }
+        .negative { color: #ff4444; }
+        .neutral { color: #ffa500; }
+
+        .loading {
+            text-align: center;
+            color: #ffa500;
+            font-style: italic;
+        }
+
+        .last-update {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔥 CHIMERA Scalper AI</h1>
+        <div class="status">
+            <div id="connection-status">🔄 Connecting to CHIMERA AI...</div>
+            <div>Uptime: <span id="uptime">0h 0m 0s</span></div>
+            <div class="last-update" id="last-update">Last update: Never</div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <!-- Performance Overview -->
+        <div class="card">
+            <h3>💰 Performance Overview</h3>
+            <div class="metric">
+                <span class="metric-label">Total PnL:</span>
+                <span class="metric-value" id="total-pnl">$0.00</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">PnL %:</span>
+                <span class="metric-value" id="pnl-percent">0.00%</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Win Rate:</span>
+                <span class="metric-value" id="win-rate">0%</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Total Trades:</span>
+                <span class="metric-value" id="total-trades">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Balance:</span>
+                <span class="metric-value" id="balance">$10,000.00</span>
+            </div>
+        </div>
+
+        <!-- Market Regime -->
+        <div class="card">
+            <h3>🎯 Market Regime Detection</h3>
+            <div class="regime-indicator" id="regime-indicator">
+                <div>Current Regime: <span id="current-regime">UNKNOWN</span></div>
+                <div>Confidence: <span id="regime-confidence">0%</span></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="regime-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- PnL Chart -->
+        <div class="card">
+            <h3>📈 PnL Performance</h3>
+            <div class="chart-container">
+                <canvas id="pnl-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Active Positions -->
+        <div class="card">
+            <h3>📊 Active Positions</h3>
+            <div id="positions-container">
+                <div class="loading">No active positions</div>
+            </div>
+        </div>
+
+        <!-- Market Data -->
+        <div class="card">
+            <h3>💹 Live Market Data</h3>
+            <div class="metric">
+                <span class="metric-label">BTCUSDT:</span>
+                <span class="metric-value" id="btc-price">$0.00</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">ETHUSDT:</span>
+                <span class="metric-value" id="eth-price">$0.00</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">SOLUSDT:</span>
+                <span class="metric-value" id="sol-price">$0.00</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Data Points:</span>
+                <span class="metric-value" id="data-points">0</span>
+            </div>
+        </div>
+
+        <!-- System Stats -->
+        <div class="card">
+            <h3>⚡ System Performance</h3>
+            <div class="metric">
+                <span class="metric-label">Processing Speed:</span>
+                <span class="metric-value" id="processing-speed">0 ticks/sec</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Total Ticks:</span>
+                <span class="metric-value" id="total-ticks">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Signals Generated:</span>
+                <span class="metric-value" id="signals-generated">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Model Accuracy:</span>
+                <span class="metric-value" id="model-accuracy">0%</span>
+            </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="card">
+            <h3>📋 Recent Trades</h3>
+            <div class="trade-log" id="trade-log">
+                <div class="log-entry">Waiting for trades...</div>
+            </div>
+        </div>
+
+        <!-- Data Collection Stats -->
+        <div class="card">
+            <h3>💾 Data Collection</h3>
+            <div class="metric">
+                <span class="metric-label">Market Data Points:</span>
+                <span class="metric-value" id="market-data-points">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Trade Outcomes:</span>
+                <span class="metric-value" id="trade-outcomes">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">DB Size:</span>
+                <span class="metric-value" id="db-size">0 MB</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Learning Rate:</span>
+                <span class="metric-value" id="learning-rate">0.001</span>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Configuration
+    const API_BASE_URL = 'https://tradingtoday.com.au/api/chimera';
+    const UPDATE_INTERVAL = 2000; // 2 seconds
+    
+    // Charts
+    let regimeChart, pnlChart;
+    
+    // Data storage
+    let regimeHistory = [];
+    let pnlHistory = [];
+    let startTime = Date.now();
+    let lastUpdateTime = null;
+    
+    // Initialize charts
+    function initCharts() {
+        // Regime Chart
+        const regimeCtx = document.getElementById('regime-chart').getContext('2d');
+        regimeChart = new Chart(regimeCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Regime Confidence',
+                    data: [],
+                    borderColor: '#00ff41',
+                    backgroundColor: 'rgba(0, 255, 65, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#00ff41' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#cccccc' } },
+                    y: {
+                        ticks: { color: '#cccccc' },
+                        min: 0,
+                        max: 1
+                    }
+                }
+            }
+        });
+
+        // PnL Chart
+        const pnlCtx = document.getElementById('pnl-chart').getContext('2d');
+        pnlChart = new Chart(pnlCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Cumulative PnL (%)',
+                    data: [],
+                    borderColor: '#00ff41',
+                    backgroundColor: 'rgba(0, 255, 65, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#00ff41' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#cccccc' } },
+                    y: { ticks: { color: '#cccccc' } }
+                }
+            }
+        });
+    }
+
+    // Update uptime
+    function updateUptime() {
+        const elapsed = Date.now() - startTime;
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        document.getElementById('uptime').textContent = `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    // Fetch data from API
+    async function fetchData() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/stats`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            updateDashboard(data);
+            
+            // Update connection status
+            document.getElementById('connection-status').innerHTML = 
+                '<span class="connected">🟢 Connected to CHIMERA AI</span>';
+            
+            // Update last update time
+            lastUpdateTime = new Date();
+            document.getElementById('last-update').textContent = 
+                `Last update: ${lastUpdateTime.toLocaleTimeString()}`;
+                
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+            document.getElementById('connection-status').innerHTML = 
+                '<span class="disconnected">⚫ Connection Error</span>';
+        }
+    }
+
+    // Update dashboard with new data
+    function updateDashboard(data) {
+        // Performance metrics
+        if (data.performance) {
+            document.getElementById('total-pnl').textContent = 
+                `$${(data.performance.total_pnl || 0).toFixed(2)}`;
+            document.getElementById('pnl-percent').textContent = 
+                `${(data.performance.pnl_percent || 0).toFixed(2)}%`;
+            document.getElementById('win-rate').textContent = 
+                `${(data.performance.win_rate || 0).toFixed(1)}%`;
+            document.getElementById('total-trades').textContent = 
+                data.performance.total_trades || 0;
+            document.getElementById('balance').textContent = 
+                `$${(data.performance.balance || 10000).toFixed(2)}`;
+        }
+
+        // Market regime
+        if (data.regime) {
+            const regimeElement = document.getElementById('current-regime');
+            const confidenceElement = document.getElementById('regime-confidence');
+            const indicatorElement = document.getElementById('regime-indicator');
+            
+            regimeElement.textContent = data.regime.current || 'UNKNOWN';
+            confidenceElement.textContent = 
+                `${((data.regime.confidence || 0) * 100).toFixed(1)}%`;
+            
+            // Update regime indicator styling
+            indicatorElement.className = 'regime-indicator';
+            if (data.regime.current) {
+                indicatorElement.classList.add(`regime-${data.regime.current.toLowerCase().replace(' ', '-')}`);
+            }
+            
+            // Update regime chart
+            if (regimeChart && data.regime.confidence) {
+                const now = new Date().toLocaleTimeString();
+                regimeChart.data.labels.push(now);
+                regimeChart.data.datasets[0].data.push(data.regime.confidence);
+                
+                if (regimeChart.data.labels.length > 50) {
+                    regimeChart.data.labels.shift();
+                    regimeChart.data.datasets[0].data.shift();
+                }
+                
+                regimeChart.update('none');
+            }
+        }
+
+        // Market data
+        if (data.market) {
+            document.getElementById('btc-price').textContent = 
+                `$${(data.market.BTCUSDT || 0).toFixed(2)}`;
+            document.getElementById('eth-price').textContent = 
+                `$${(data.market.ETHUSDT || 0).toFixed(2)}`;
+            document.getElementById('sol-price').textContent = 
+                `$${(data.market.SOLUSDT || 0).toFixed(2)}`;
+        }
+
+        // System stats
+        if (data.system) {
+            document.getElementById('processing-speed').textContent = 
+                `${data.system.processing_speed || 0} ticks/sec`;
+            document.getElementById('total-ticks').textContent = 
+                data.system.total_ticks || 0;
+            document.getElementById('signals-generated').textContent = 
+                data.system.signals_generated || 0;
+            document.getElementById('model-accuracy').textContent = 
+                `${(data.system.model_accuracy || 0).toFixed(1)}%`;
+            document.getElementById('data-points').textContent = 
+                data.system.total_ticks || 0;
+        }
+
+        // Data collection
+        if (data.data_collection) {
+            document.getElementById('market-data-points').textContent = 
+                data.data_collection.market_data_points || 0;
+            document.getElementById('trade-outcomes').textContent = 
+                data.data_collection.trade_outcomes || 0;
+            document.getElementById('db-size').textContent = 
+                `${(data.data_collection.db_size_mb || 0).toFixed(1)} MB`;
+            document.getElementById('learning-rate').textContent = 
+                data.data_collection.learning_rate || '0.001';
+        }
+
+        // Recent trades
+        if (data.recent_trades && data.recent_trades.length > 0) {
+            updateTradeLog(data.recent_trades);
+        }
+
+        // Update PnL chart
+        if (data.performance && data.performance.pnl_percent !== undefined) {
+            const now = new Date().toLocaleTimeString();
+            pnlChart.data.labels.push(now);
+            pnlChart.data.datasets[0].data.push(data.performance.pnl_percent);
+            
+            if (pnlChart.data.labels.length > 50) {
+                pnlChart.data.labels.shift();
+                pnlChart.data.datasets[0].data.shift();
+            }
+            
+            pnlChart.update('none');
+        }
+    }
+
+    // Update trade log
+    function updateTradeLog(trades) {
+        const tradeLog = document.getElementById('trade-log');
+        tradeLog.innerHTML = '';
+        
+        trades.slice(0, 20).forEach(trade => {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${trade.action?.toLowerCase() || 'unknown'}`;
+            
+            const timestamp = new Date(trade.timestamp).toLocaleTimeString();
+            logEntry.innerHTML = `
+                [${timestamp}] ${trade.symbol}: ${trade.action} at $${(trade.price || 0).toFixed(2)}
+                (${trade.regime || 'UNKNOWN'} - ${((trade.confidence || 0) * 100).toFixed(1)}%)
+                ${trade.pnl_pct ? `PnL: ${trade.pnl_pct > 0 ? '+' : ''}${trade.pnl_pct.toFixed(2)}%` : ''}
+            `;
+            
+            if (trade.pnl_pct) {
+                logEntry.classList.add(trade.pnl_pct > 0 ? 'log-profit' : 'log-loss');
+            }
+            
+            tradeLog.appendChild(logEntry);
+        });
+    }
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+        initCharts();
+        setInterval(updateUptime, 1000);
+        
+        // Start fetching data
+        fetchData();
+        setInterval(fetchData, UPDATE_INTERVAL);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+/home/markp/chimera_scalper/build/CMakeFiles/chimera_scalper.dir
+/home/markp/chimera_scalper/build/CMakeFiles/edit_cache.dir
+/home/markp/chimera_scalper/build/CMakeFiles/rebuild_cache.dir

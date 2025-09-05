@@ -1,0 +1,4 @@
+{
+    "codellm.provider": "ollama",
+    "codellm.openai.apiKey": ""
+}

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 CHIMERA Scalper AI Stats</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff41;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00ff41;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #ff4444;
+            text-shadow: 0 0 20px #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+
+        .connected { color: #00ff41; }
+        .disconnected { color: #ff4444; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00ff41;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h3 {
+            color: #00ff41;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-align: center;
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 10px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+        }
+
+        .metric-label {
+            color: #cccccc;
+        }
+
+        .metric-value {
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        .positive { color: #00ff41 !important; }
+        .negative { color: #ff4444 !important; }
+        .neutral { color: #ffaa00 !important; }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .expert-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .expert-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .expert-ross { border-color: #ff6b6b; }
+        .expert-bao { border-color: #4ecdc4; }
+        .expert-nick { border-color: #45b7d1; }
+        .expert-fabio { border-color: #96ceb4; }
+
+        .regime-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 5px;
+        }
+
+        .regime-trend-up { background: #00ff41; color: #000; }
+        .regime-trend-down { background: #ff4444; color: #fff; }
+        .regime-range { background: #ffaa00; color: #000; }
+        .regime-liquidity { background: #00aaff; color: #fff; }
+        .regime-chaos { background: #ff00ff; color: #fff; }
+
+        .trade-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #00ff41;
+            padding-left: 10px;
+        }
+
+        .log-buy { border-left-color: #00ff41; }
+        .log-sell { border-left-color: #ff4444; }
+        .log-profit { background: rgba(0, 255, 65, 0.1); }
+        .log-loss { background: rgba(255, 68, 68, 0.1); }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🔥 CHIMERA SCALPER AI DASHBOARD 🔥</h1>
+    <div class="status" id="connection-status">
+        <span class="disconnected">⚫ Disconnected</span>
+    </div>
+    <div>Demo Trading • Real-time AI Monitoring • 2-Week Training Cycle</div>
+</div>
+
+<div class="dashboard">
+    <!-- System Overview -->
+    <div class="card">
+        <h3>📊 System Overview</h3>
+        <div class="metric">
+            <span class="metric-label">Uptime:</span>
+            <span class="metric-value" id="uptime">0h 0m 0s</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Total Ticks:</span>
+            <span class="metric-value" id="total-ticks">0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Ticks/min:</span>
+            <span class="metric-value" id="tick-rate">0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Training Progress:</span>
+            <span class="metric-value" id="training-progress">0%</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Days Remaining:</span>
+            <span class="metric-value" id="days-remaining">14d 0h</span>
+        </div>
+    </div>
+
+    <!-- Market Data -->
+    <div class="card">
+        <h3>💹 Live Market Data</h3>
+        <div class="metric">
+            <span class="metric-label">BTC/USDT:</span>
+            <span class="metric-value" id="btc-price">$0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">ETH/USDT:</span>
+            <span class="metric-value" id="eth-price">$0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">SOL/USDT:</span>
+            <span class="metric-value" id="sol-price">$0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">ADA/USDT:</span>
+            <span class="metric-value" id="ada-price">$0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">DOGE/USDT:</span>
+            <span class="metric-value" id="doge-price">$0</span>
+        </div>
+    </div>
+
+    <!-- Current Market Regime -->
+    <div class="card">
+        <h3>🧠 Market Regime Classification</h3>
+        <div style="text-align: center; margin: 20px 0;">
+            <div class="regime-indicator" id="current-regime">UNKNOWN</div>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Confidence:</span>
+            <span class="metric-value" id="regime-confidence">0%</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Regime Changes:</span>
+            <span class="metric-value" id="regime-changes">0</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="regime-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Expert Performance -->
+    <div class="card">
+        <h3>🤖 AI Experts Performance</h3>
+        <div class="expert-grid">
+            <div class="expert-card expert-ross">
+                <h4>ROSS AI</h4>
+                <div>Momentum</div>
+                <div id="ross-signals">0 signals</div>
+                <div id="ross-success" class="positive">0% win</div>
+            </div>
+            <div class="expert-card expert-bao">
+                <h4>BAO AI</h4>
+                <div>Mean Reversion</div>
+                <div id="bao-signals">0 signals</div>
+                <div id="bao-success" class="positive">0% win</div>
+            </div>
+            <div class="expert-card expert-nick">
+                <h4>NICK AI</h4>
+                <div>Volume/Pressure</div>
+                <div id="nick-signals">0 signals</div>
+                <div id="nick-success" class="positive">0% win</div>
+            </div>
+            <div class="expert-card expert-fabio">
+                <h4>FABIO AI</h4>
+                <div>Chaos/Entropy</div>
+                <div id="fabio-signals">0 signals</div>
+                <div id="fabio-success" class="positive">0% win</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trading Performance -->
+    <div class="card">
+        <h3>📈 Trading Performance</h3>
+        <div class="metric">
+            <span class="metric-label">Total Signals:</span>
+            <span class="metric-value" id="total-signals">0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Success Rate:</span>
+            <span class="metric-value positive" id="success-rate">0%</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Total PnL:</span>
+            <span class="metric-value" id="total-pnl">0%</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Avg PnL/Trade:</span>
+            <span class="metric-value" id="avg-pnl">0%</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Best Trade:</span>
+            <span class="metric-value positive" id="best-trade">0%</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Worst Trade:</span>
+            <span class="metric-value negative" id="worst-trade">0%</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="pnl-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Layer Performance -->
+    <div class="card">
+        <h3>⚡ Layer Performance</h3>
+        <div class="metric">
+            <span class="metric-label">Layer 0 (Microstructure):</span>
+            <span class="metric-value" id="layer0-latency">0ms</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Layer 1 (Fast Filter):</span>
+            <span class="metric-value" id="layer1-latency">0ms</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Layer 2 (Regime):</span>
+            <span class="metric-value" id="layer2-latency">0ms</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Layer 3 (MoE):</span>
+            <span class="metric-value" id="layer3-latency">0ms</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Layer 4 (PnL Filter):</span>
+            <span class="metric-value" id="layer4-latency">0ms</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Total Latency:</span>
+            <span class="metric-value" id="total-latency">0ms</span>
+        </div>
+    </div>
+
+    <!-- Recent Trades -->
+    <div class="card">
+        <h3>📋 Recent Trades</h3>
+        <div class="trade-log" id="trade-log">
+            <div class="log-entry">Waiting for trades...</div>
+        </div>
+    </div>
+
+    <!-- Data Collection Stats -->
+    <div class="card">
+        <h3>💾 Data Collection</h3>
+        <div class="metric">
+            <span class="metric-label">Market Data Points:</span>
+            <span class="metric-value" id="data-points">0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Trade Outcomes:</span>
+            <span class="metric-value" id="trade-outcomes">0</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">DB Size:</span>
+            <span class="metric-value" id="db-size">0 MB</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Features/sec:</span>
+            <span class="metric-value" id="features-rate">0</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Socket.IO connection
+    const socket = io('http://localhost:3001');
+
+    // Charts
+    let regimeChart, pnlChart;
+
+    // Data storage
+    let regimeHistory = [];
+    let pnlHistory = [];
+    let startTime = Date.now();
+
+    // Connection status
+    socket.on('connect', () => {
+        document.getElementById('connection-status').innerHTML =
+            '<span class="connected">🟢 Connected to CHIMERA AI</span>';
+    });
+
+    socket.on('disconnect', () => {
+        document.getElementById('connection-status').innerHTML =
+            '<span class="disconnected">⚫ Disconnected</span>';
+    });
+
+    // Initialize charts
+    function initCharts() {
+        // Regime Chart
+        const regimeCtx = document.getElementById('regime-chart').getContext('2d');
+        regimeChart = new Chart(regimeCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Regime Confidence',
+                    data: [],
+                    borderColor: '#00ff41',
+                    backgroundColor: 'rgba(0, 255, 65, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#00ff41' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#cccccc' } },
+                    y: {
+                        ticks: { color: '#cccccc' },
+                        min: 0,
+                        max: 1
+                    }
+                }
+            }
+        });
+
+        // PnL Chart
+        const pnlCtx = document.getElementById('pnl-chart').getContext('2d');
+        pnlChart = new Chart(pnlCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Cumulative PnL (%)',
+                    data: [],
+                    borderColor: '#00ff41',
+                    backgroundColor: 'rgba(0, 255, 65, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#00ff41' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#cccccc' } },
+                    y: { ticks: { color: '#cccccc' } }
+                }
+            }
+        });
+    }
+
+    // Update uptime
+    function updateUptime() {
+        const elapsed = Date.now() - startTime;
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        document.getElementById('uptime').textContent = `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    // Socket event handlers
+    socket.on('stats_update', (data) => {
+        // System stats
+        document.getElementById('total-ticks').textContent = data.ticks || 0;
+        document.getElementById('tick-rate').textContent = data.tick_rate || 0;
+
+        // Market prices
+        if (data.prices) {
+            document.getElementById('btc-price').textContent =
+                data.prices.BTCUSDT ? `$${data.prices.BTCUSDT.toLocaleString()}` : '$0';
+            document.getElementById('eth-price').textContent =
+                data.prices.ETHUSDT ? `$${data.prices.ETHUSDT.toLocaleString()}` : '$0';
+            document.getElementById('sol-price').textContent =
+                data.prices.SOLUSDT ? `$${data.prices.SOLUSDT.toFixed(2)}` : '$0';
+            document.getElementById('ada-price').textContent =
+                data.prices.ADAUSDT ? `$${data.prices.ADAUSDT.toFixed(4)}` : '$0';
+            document.getElementById('doge-price').textContent =
+                data.prices.DOGEUSDT ? `$${data.prices.DOGEUSDT.toFixed(6)}` : '$0';
+        }
+
+        // Trading stats
+        document.getElementById('total-signals').textContent = data.signals || 0;
+        document.getElementById('success-rate').textContent =
+            data.success_rate ? `${(data.success_rate * 100).toFixed(1)}%` : '0%';
+
+        const totalPnl = data.total_pnl || 0;
+        const pnlElement = document.getElementById('total-pnl');
+        pnlElement.textContent = `${totalPnl > 0 ? '+' : ''}${totalPnl.toFixed(2)}%`;
+        pnlElement.className = `metric-value ${totalPnl > 0 ? 'positive' : totalPnl < 0 ? 'negative' : ''}`;
+
+        // Data collection
+        document.getElementById('data-points').textContent = data.data_points || 0;
+        document.getElementById('trade-outcomes').textContent = data.trade_outcomes || 0;
+
+        // Training progress
+        if (data.training_progress) {
+            document.getElementById('training-progress').textContent =
+                `${(data.training_progress * 100).toFixed(1)}%`;
+            document.getElementById('days-remaining').textContent = data.days_remaining || '14d 0h';
+        }
+    });
+
+    socket.on('regime_update', (data) => {
+        const regimeElement = document.getElementById('current-regime');
+        regimeElement.textContent = data.regime || 'UNKNOWN';
+        regimeElement.className = `regime-indicator regime-${data.regime?.toLowerCase().replace('_', '-') || 'unknown'}`;
+
+        document.getElementById('regime-confidence').textContent =
+            data.confidence ? `${(data.confidence * 100).toFixed(1)}%` : '0%';
+
+        // Update regime chart
+        if (regimeChart && data.confidence) {
+            const now = new Date().toLocaleTimeString();
+            regimeChart.data.labels.push(now);
+            regimeChart.data.datasets[0].data.push(data.confidence);
+
+            if (regimeChart.data.labels.length > 50) {
+                regimeChart.data.labels.shift();
+                regimeChart.data.datasets[0].data.shift();
+            }
+
+            regimeChart.update('none');
+        }
+    });
+
+    socket.on('trade_update', (data) => {
+        // Add to trade log
+        const tradeLog = document.getElementById('trade-log');
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry log-${data.action?.toLowerCase() || 'unknown'}`;
+
+        const timestamp = new Date().toLocaleTimeString();
+        logEntry.innerHTML = `
+                [${timestamp}] ${data.symbol}: ${data.action} at $${data.price?.toFixed(2) || '0'}
+                (${data.regime || 'UNKNOWN'} - ${data.confidence ? (data.confidence * 100).toFixed(1) : '0'}%)
+                ${data.pnl_pct ? `PnL: ${data.pnl_pct > 0 ? '+' : ''}${data.pnl_pct.toFixed(2)}%` : ''}
+            `;
+
+        if (data.pnl_pct) {
+            logEntry.classList.add(data.pnl_pct > 0 ? 'log-profit' : 'log-loss');
+        }
+
+        tradeLog.insertBefore(logEntry, tradeLog.firstChild);
+
+        // Keep only last 20 entries
+        while (tradeLog.children.length > 20) {
+            tradeLog.removeChild(tradeLog.lastChild);
+        }
+
+        // Update PnL chart
+        if (pnlChart && data.cumulative_pnl !== undefined) {
+            const now = new Date().toLocaleTimeString();
+            pnlChart.data.labels.push(now);
+            pnlChart.data.datasets[0].data.push(data.cumulative_pnl);
+
+            if (pnlChart.data.labels.length > 50) {
+                pnlChart.data.labels.shift();
+                pnlChart.data.datasets[0].data.shift();
+            }
+
+            pnlChart.update('none');
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        initCharts();
+        setInterval(updateUptime, 1000);
+    });
+</script>
+</body>
+</html>

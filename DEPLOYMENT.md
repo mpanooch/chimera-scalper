@@ -1,100 +1,74 @@
 # CHIMERA API Deployment Guide
 
-## 🚨 Important: GitHub Pages Limitation
-**GitHub Pages does NOT support PHP execution.** It only serves static files (HTML, CSS, JS).
+## Files Fixed and Ready for Deployment
 
-## 📁 Files Ready for Upload:
+### 1. Core API Files
+- `api/chimera/index.php` - Main API endpoint (fixed PHP syntax errors)
+- `api/chimera/chimera_data.json` - Sample data file
+- `.htaccess` - URL rewriting configuration
 
-### Core Files:
-- `.htaccess` - URL rewriting (for PHP hosting)
-- `api/chimera/index.php` - PHP API (for PHP hosting)
-- `api/chimera/chimera_data.json` - Sample data
-- `test_api.py` - Testing script
+### 2. Test File
+- `test_api.py` - API testing script
 
-### GitHub Pages Compatible Files:
-- `api/chimera/index.html` - Static HTML API simulation
-- `api/chimera.js` - Vercel serverless function
-- `.github/workflows/update-data.yml` - Auto-update workflow
+## Deployment Steps
 
-## 🚀 Deployment Options:
+### For GitHub Pages with Custom Domain:
 
-### Option 1: GitHub Pages + Static API (Easiest)
-1. Upload all files to GitHub
-2. Enable GitHub Pages in repository settings
-3. Your API will work at: `https://yourusername.github.io/yourrepo/api/chimera/index.html?action=stats`
-4. **Limitation**: Data won't update automatically (read-only)
+1. **Push to GitHub:**
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+   git branch -M main
+   git push -u origin main
+   ```
 
-### Option 2: Vercel (Recommended)
-1. Push code to GitHub
-2. Connect GitHub repo to Vercel (vercel.com)
-3. Deploy automatically
-4. Custom domain: Point `tradingtoday.com.au` to Vercel
-5. API will work at: `https://tradingtoday.com.au/api/chimera?action=stats`
+2. **GitHub Pages Settings:**
+   - Go to your repository settings
+   - Enable GitHub Pages
+   - Set custom domain to `tradingtoday.com.au`
 
-### Option 3: Free PHP Hosting
-**InfinityFree** (free):
-1. Sign up at infinityfree.net
-2. Upload PHP files via FTP
-3. Point domain to their servers
-4. Full PHP functionality
+### Important Notes:
 
-**000webhost** (free):
-1. Sign up at 000webhost.com
-2. Upload files via file manager
-3. Custom domain support
+⚠️ **GitHub Pages Limitation:** GitHub Pages only serves static files (HTML, CSS, JS) and does NOT execute PHP code.
 
-### Option 4: Paid PHP Hosting
-- **Hostinger** (~$2/month)
-- **SiteGround** (~$3/month)
-- **Bluehost** (~$3/month)
+### Alternative Deployment Options:
 
-## 🧪 Testing Your Deployment:
+1. **Web Hosting with PHP Support:**
+   - Upload files to a web host that supports PHP
+   - Ensure PHP 7.4+ is available
+   - Set file permissions: `chmod 644` for files, `chmod 755` for directories
+   - Make sure `chimera_data.json` is writable: `chmod 666`
 
-### For GitHub Pages:
-```bash
-curl "https://yourusername.github.io/yourrepo/api/chimera/index.html?action=stats"
-```
+2. **VPS/Cloud Server:**
+   - Deploy to a server with Apache/Nginx + PHP
+   - Configure virtual host for your domain
+   - Ensure mod_rewrite is enabled for .htaccess
 
-### For Vercel:
-```bash
-curl "https://your-project.vercel.app/api/chimera?action=stats"
-```
+## Testing After Deployment
 
-### For PHP Hosting:
+Run the test script:
 ```bash
 python3 test_api.py prod
 ```
 
-## 📋 Quick Start Commands:
+Expected results:
+- POST /api/chimera/update: Status 200 (success)
+- GET /api/chimera/stats: Status 200 with JSON data
 
-```bash
-# 1. Push to GitHub
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-git branch -M main
-git push -u origin main
+## API Endpoints
 
-# 2. Enable GitHub Pages
-# Go to Settings > Pages > Source: Deploy from branch > main
+- `POST /api/chimera/update` - Update trading data
+- `GET /api/chimera/stats` - Get current stats
+- `GET /api/chimera/health` - Health check
 
-# 3. Test the static API
-curl "https://YOUR_USERNAME.github.io/YOUR_REPO/api/chimera/index.html?action=stats"
-```
+## Troubleshooting
 
-## 🎯 Recommendation:
+If you get "Page not found" errors:
+1. Ensure files are in the correct directory structure
+2. Check that PHP is enabled on your hosting
+3. Verify .htaccess is being processed
+4. Check file permissions
 
-**For a professional trading dashboard**, I recommend **Vercel** because:
-- ✅ Free tier available
-- ✅ Custom domain support
-- ✅ Serverless functions (like PHP)
-- ✅ Automatic deployments from GitHub
-- ✅ Can handle POST requests for data updates
-- ✅ Fast global CDN
-
-## 🔧 Next Steps:
-
-1. **Choose your deployment method** from the options above
-2. **Upload the appropriate files** for your chosen method
-3. **Test the API** using the provided commands
-4. **Point your domain** to the hosting service
-
-Let me know which option you'd like to pursue!
+If you get 405 errors:
+1. Verify the web server supports the HTTP methods
+2. Check .htaccess rewrite rules
+3. Ensure PHP script is receiving the correct parameters
